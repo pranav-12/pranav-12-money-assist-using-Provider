@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:money_mangement_project1/db/categories/category_db.dart';
 import 'package:money_mangement_project1/models/transactions/transaction_model.dart';
+import 'package:money_mangement_project1/provider/add_notes_provider.dart';
+import 'package:money_mangement_project1/widgets/bottomnavigationbar.dart';
+import 'package:provider/provider.dart';
 
 import '../../models/categories/category_model.dart';
 
@@ -23,7 +26,6 @@ class TransactionDB with ChangeNotifier implements TransactionDbFunctions {
     return instance;
   }
 
-
 //for adding values into Database as category type
   @override
   Future<void> addTransaction(TransactionModel transactionModel) async {
@@ -32,7 +34,6 @@ class TransactionDB with ChangeNotifier implements TransactionDbFunctions {
     await transactionDB.put(transactionModel.id, transactionModel);
   }
 
-
 //for get the values from the database
   @override
   Future<List<TransactionModel>> getTransaction() async {
@@ -40,7 +41,6 @@ class TransactionDB with ChangeNotifier implements TransactionDbFunctions {
         await Hive.openBox<TransactionModel>(transactionDbName);
     return transactionDB.values.toList();
   }
-
 
 //for delete the values from the databases
   @override
@@ -51,7 +51,6 @@ class TransactionDB with ChangeNotifier implements TransactionDbFunctions {
     refresh();
   }
 
-
 // for edit the notes
   Future<void> editTransaction(TransactionModel transModel, index) async {
     final transactionDB =
@@ -59,7 +58,6 @@ class TransactionDB with ChangeNotifier implements TransactionDbFunctions {
     await transactionDB.put(transModel.id, transModel);
     refresh();
   }
-
 
 //for resetAll : clear full transactionDB
   @override
@@ -71,7 +69,6 @@ class TransactionDB with ChangeNotifier implements TransactionDbFunctions {
 
     CategoryDB.instance.resetAllCategory();
   }
-
 
 //for refresh the Ui
 
@@ -92,6 +89,7 @@ class TransactionDB with ChangeNotifier implements TransactionDbFunctions {
       ValueNotifier([]);
 
   Future<void> refresh() async {
+    
     //get separated database values
     final allTransaction = await getTransaction();
     transactionNotifier.value.clear();
@@ -100,7 +98,7 @@ class TransactionDB with ChangeNotifier implements TransactionDbFunctions {
 
     // for set values into chart list to show the chart
     incomeNotifier.value.clear();
-       expenseNotifier.value.clear();
+    expenseNotifier.value.clear();
 
     await Future.forEach(allTransaction, (TransactionModel transaction) {
       if (transaction.type == CategoryType.income) {
@@ -122,13 +120,21 @@ class TransactionDB with ChangeNotifier implements TransactionDbFunctions {
 
     //set values into todayIncome
     await Future.forEach(allTransaction, (TransactionModel transaction) {
-      if (transaction.date ==
-          DateTime(
-              DateTime.now().year, DateTime.now().month, DateTime.now().day)) {
-        todayIncomeNotifier.value.add(transaction);
-        todayAllNotifier.value.add(transaction);
+      if (transaction.type == CategoryType.income) {
+        if (transaction.date ==
+            DateTime(DateTime.now().year, DateTime.now().month,
+                DateTime.now().day)) {
+          todayIncomeNotifier.value.add(transaction);
+          todayAllNotifier.value.add(transaction);
+        }
+      } else {
+        if (transaction.date ==
+            DateTime(DateTime.now().year, DateTime.now().month,
+                DateTime.now().day)) {
+          todayExpenseNotifier.value.add(transaction);
+          todayAllNotifier.value.add(transaction);
+        }
       }
-      
     });
 
     todayExpenseNotifier.notifyListeners();
@@ -142,11 +148,17 @@ class TransactionDB with ChangeNotifier implements TransactionDbFunctions {
 
     //set values into monthlyIncome
     await Future.forEach(allTransaction, (TransactionModel transaction) {
-      if (transaction.date.month == DateTime.now().month) {
-        monthlyIncomeNotifier.value.add(transaction);
-        monthlyAllNotifier.value.add(transaction);
+      if (transaction.type == CategoryType.income) {
+        if (transaction.date.month == DateTime.now().month) {
+          monthlyIncomeNotifier.value.add(transaction);
+          monthlyAllNotifier.value.add(transaction);
+        }
+      } else {
+        if (transaction.date.month == DateTime.now().month) {
+          monthlyExpenseNotifier.value.add(transaction);
+          monthlyAllNotifier.value.add(transaction);
+        }
       }
-      
     });
 
     monthlyAllNotifier.notifyListeners();

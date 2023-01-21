@@ -4,15 +4,9 @@ import 'package:flutter/services.dart';
 import 'package:money_mangement_project1/widgets/bottomnavigationbar.dart';
 import 'package:page_transition/page_transition.dart';
 
-class ScreenSplash extends StatefulWidget {
+class ScreenSplash extends StatelessWidget {
   const ScreenSplash({super.key});
-  @override
-  State<ScreenSplash> createState() => _ScreenSplashState();
-}
-
-TextEditingController textcontroller = TextEditingController();
-
-class _ScreenSplashState extends State<ScreenSplash> {
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -34,7 +28,7 @@ class _ScreenSplashState extends State<ScreenSplash> {
         splashTransition: SplashTransition.scaleTransition,
 
         splash: Image.asset('assets/logo.png'),
-        nextScreen: const AppBottomNavigationBar(),
+        nextScreen:  AppBottomNavigationBar(),
         // nextScreen: ScreenSplash(),
       ),
     );

@@ -2,22 +2,19 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:money_mangement_project1/db/transactions/transaction_db.dart';
 import 'package:money_mangement_project1/models/transactions/transaction_model.dart';
+import 'package:money_mangement_project1/provider/accounts_provider/accounts_provider.dart';
+
+import 'package:provider/provider.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
-class ScreenStatistic extends StatefulWidget {
+class ScreenStatistic extends StatelessWidget {
   const ScreenStatistic({super.key});
 
-  @override
-  State<ScreenStatistic> createState() => _ScreenStatisticState();
-}
+  // List<TransactionModel> newTransactionList =
+  //     TransactionDB.instance.transactionNotifier.value;
 
-class _ScreenStatisticState extends State<ScreenStatistic> {
-  List<TransactionModel> newTransactionList =
-      TransactionDB.instance.transactionNotifier.value;
-  List<TransactionModel> charttransactionNotifier = [];
-
-  int dropdownValue = 0;
-  int dropdownValueforfiltersorting = 0;
+  // int dropdownValue = 0;
+  // int dropdownValueforfiltersorting = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -33,13 +30,15 @@ class _ScreenStatisticState extends State<ScreenStatistic> {
         leadingWidth: 100,
         actions: [
 // dropdown button for filter as today,monthly,all
-          dropdownValue != 0
+          Provider.of<ScreenAccountsProvider>(context,listen: false).dropdownValueForStatic !=
+                  0
               ? Padding(
                   padding: const EdgeInsets.all(10.0),
                   child: DropdownButtonHideUnderline(
                     child: DropdownButton(
                       dropdownColor: Colors.black,
-                      value: dropdownValueforfiltersorting,
+                      value: Provider.of<ScreenAccountsProvider>(context)
+                          .dropdownValueforfiltersortingForStatic,
                       borderRadius: BorderRadius.circular(5),
                       iconEnabledColor: Colors.white,
                       style: const TextStyle(),
@@ -48,47 +47,83 @@ class _ScreenStatisticState extends State<ScreenStatistic> {
                           value: 0,
                           child: const Text('All'),
                           onTap: () {
-                            setState(() {
-                              charttransactionNotifier = TransactionDB
-                                  .instance.transactionNotifier.value;
-                            });
+                            // setState(() {
+                            Provider.of<ScreenAccountsProvider>(context,listen: false)
+                                .changingListIntoFoundTransactionList(
+                                    TransactionDB
+                                        .instance.transactionNotifier.value,
+                                    false);
+                            // charttransactionNotifier =
+
+                            // });
                           },
                         ),
                         DropdownMenuItem(
                           value: 1,
                           child: const Text('Today'),
                           onTap: () {
-                            setState(() {
-                              if (dropdownValue == 1) {
-                                charttransactionNotifier = TransactionDB
-                                    .instance.todayIncomeNotifier.value;
-                              } else if (dropdownValue == 2) {
-                                charttransactionNotifier = TransactionDB
-                                    .instance.todayExpenseNotifier.value;
-                              }
-                            });
+                            // setState(() {
+                            if (Provider.of<ScreenAccountsProvider>(context,listen: false)
+                                    .dropdownValueForStatic ==
+                                1) {
+                              Provider.of<ScreenAccountsProvider>(context,listen: false)
+                                  .changingListIntoFoundTransactionList(
+                                      TransactionDB
+                                          .instance.todayIncomeNotifier.value,
+                                      false);
+                              // TransactionDB.instance.todayIncomeNotifier.value;
+                            } else if (Provider.of<ScreenAccountsProvider>(
+                                        context,listen: false)
+                                    .dropdownValueForStatic ==
+                                2) {
+                              Provider.of<ScreenAccountsProvider>(context,listen: false)
+                                  .changingListIntoFoundTransactionList(
+                                      TransactionDB
+                                          .instance.todayExpenseNotifier.value,
+                                      false);
+                              // charttransactionNotifier = TransactionDB
+                              //     .instance.todayExpenseNotifier.value;
+                            }
+                            // });
                           },
                         ),
                         DropdownMenuItem(
                           value: 2,
                           child: const Text('Monthly'),
                           onTap: () {
-                            setState(() {
-                              if (dropdownValue == 1) {
-                                charttransactionNotifier = TransactionDB
-                                    .instance.monthlyIncomeNotifier.value;
-                              } else if (dropdownValue == 2) {
-                                charttransactionNotifier = TransactionDB
-                                    .instance.monthlyExpenseNotifier.value;
-                              }
-                            });
+                            // setState(() {
+                            if (Provider.of<ScreenAccountsProvider>(context,listen: false)
+                                    .dropdownValueForStatic ==
+                                1) {
+                              Provider.of<ScreenAccountsProvider>(context,listen: false)
+                                  .changingListIntoFoundTransactionList(
+                                      TransactionDB
+                                          .instance.monthlyIncomeNotifier.value,
+                                      false);
+                              // charttransactionNotifier = TransactionDB
+                              //     .instance.monthlyIncomeNotifier.value;
+                            } else if (Provider.of<ScreenAccountsProvider>(
+                                        context,listen: false)
+                                    .dropdownValueForStatic ==
+                                2) {
+                              Provider.of<ScreenAccountsProvider>(context,listen: false)
+                                  .changingListIntoFoundTransactionList(
+                                      TransactionDB.instance
+                                          .monthlyExpenseNotifier.value,
+                                      false);
+                              // charttransactionNotifier = TransactionDB
+                              //     .instance.monthlyExpenseNotifier.value;
+                            }
+                            // });
                           },
                         ),
                       ],
                       onChanged: (value) {
-                        setState(() {
-                          dropdownValueforfiltersorting = value!;
-                        });
+                        Provider.of<ScreenAccountsProvider>(context,listen: false)
+                            .dropDownValue(value!, false, true);
+                        // setState(() {
+                        //   dropdownValueforfiltersorting = value!;
+                        // });
                       },
                     ),
                   ),
@@ -102,7 +137,8 @@ class _ScreenStatisticState extends State<ScreenStatistic> {
               child: DropdownButtonHideUnderline(
             child: DropdownButton(
               dropdownColor: Colors.black,
-              value: dropdownValue,
+              value: Provider.of<ScreenAccountsProvider>(context)
+                  .dropdownValueForStatic,
               borderRadius: BorderRadius.circular(5),
               iconEnabledColor: Colors.white,
               style: const TextStyle(),
@@ -111,54 +147,72 @@ class _ScreenStatisticState extends State<ScreenStatistic> {
                   value: 0,
                   child: const Text('All'),
                   onTap: () {
-                    setState(() {
-                      charttransactionNotifier =
-                          TransactionDB.instance.transactionNotifier.value;
-                    });
+                    Provider.of<ScreenAccountsProvider>(context,listen: false)
+                        .changingListIntoFoundTransactionList(
+                            TransactionDB.instance.transactionNotifier.value,
+                            false);
+                    // setState(() {
+                    //   charttransactionNotifier =
+                    //       TransactionDB.instance.transactionNotifier.value;
+                    // });
                   },
                 ),
                 DropdownMenuItem(
                   value: 1,
                   child: const Text('Income'),
                   onTap: () {
-                    setState(() {
-                      charttransactionNotifier =
-                          TransactionDB.instance.incomeNotifier.value;
-                    });
+                    Provider.of<ScreenAccountsProvider>(context,listen: false)
+                        .changingListIntoFoundTransactionList(
+                            TransactionDB.instance.incomeNotifier.value, false);
+                    // setState(() {
+                    //   charttransactionNotifier =
+                    //       TransactionDB.instance.incomeNotifier.value;
+                    // });
                   },
                 ),
                 DropdownMenuItem(
                   value: 2,
                   child: const Text('Expense'),
                   onTap: () {
-                    setState(() {
-                      charttransactionNotifier =
-                          TransactionDB.instance.expenseNotifier.value;
-                    });
+                    Provider.of<ScreenAccountsProvider>(context,listen: false)
+                        .changingListIntoFoundTransactionList(
+                            TransactionDB.instance.expenseNotifier.value,
+                            false);
+                    // setState(() {
+                    //   charttransactionNotifier =
+                    //       TransactionDB.instance.expenseNotifier.value;
+                    // });
                   },
                 )
               ],
               onChanged: (value) {
-                setState(() {
-                  dropdownValue = value!;
-                });
+                Provider.of<ScreenAccountsProvider>(context,listen: false)
+                            .dropDownValue(value!, true, true);
+                // setState(() {
+                //   dropdownValue = value!;
+                // });
               },
             ),
           )),
         ),
       ),
-      body: dropdownValue != 0
+      body: Provider.of<ScreenAccountsProvider>(context,listen: false)
+                  .dropdownValueForStatic !=
+              0
           ? ValueListenableBuilder(
               valueListenable: TransactionDB.instance.transactionNotifier,
               builder: (context, value, child) {
 // showing the list as a pie chart
-                return charttransactionNotifier.isNotEmpty
+                return Provider.of<ScreenAccountsProvider>(context,listen: false)
+                        .charttransactionNotifier
+                        .isNotEmpty
                     ? Column(
                         children: [
                           Padding(
                             padding: const EdgeInsets.only(top: 80),
                             child: Text(
-                              charttransactionNotifier ==
+                              Provider.of<ScreenAccountsProvider>(context,listen: false)
+                                          .charttransactionNotifier ==
                                       TransactionDB
                                           .instance.incomeNotifier.value
                                   ? 'Income Statistics'
@@ -184,7 +238,10 @@ class _ScreenStatisticState extends State<ScreenStatistic> {
                               series: <CircularSeries>[
                                 PieSeries<TransactionModel, String>(
                                   explode: true,
-                                  dataSource: charttransactionNotifier,
+                                  dataSource:
+                                      Provider.of<ScreenAccountsProvider>(
+                                              context,listen: false)
+                                          .charttransactionNotifier,
                                   xValueMapper: (TransactionModel data, _) =>
                                       data.notes,
                                   yValueMapper: (TransactionModel data, _) {

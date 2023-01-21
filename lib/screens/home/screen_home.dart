@@ -7,16 +7,9 @@ import '../../db/transactions/transaction_db.dart';
 import '../../models/categories/category_model.dart';
 import '../../models/transactions/transaction_model.dart';
 
-class ScreenHome extends StatefulWidget {
-  const ScreenHome({super.key});
-
-  @override
-  State<ScreenHome> createState() => _ScreenHomeState();
-}
-
-class _ScreenHomeState extends State<ScreenHome> {
+class ScreenHome extends StatelessWidget {
   final editNameController = TextEditingController();
-  String? nameEdit = 'User name';
+  final String? nameEdit = 'User name';
 
   //for show the day night quotes
   final String message =
@@ -25,10 +18,10 @@ class _ScreenHomeState extends State<ScreenHome> {
       ? Image.asset('assets/sun.png')
       : Image.asset('assets/sun (2).png');
 
+  ScreenHome({super.key});
 
   @override
   Widget build(BuildContext context) {
-
     CategoryDB.instance.refreshUI();
     TransactionDB.instance.refresh();
     return Scaffold(
@@ -42,14 +35,11 @@ class _ScreenHomeState extends State<ScreenHome> {
           child: CircleAvatar(
               backgroundColor: Theme.of(context).primaryColor, child: set),
         ),
-        title:Text(
-              message,
-              style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 15),
-            ),
-        
+        title: Text(
+          message,
+          style: const TextStyle(
+              color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
+        ),
         actions: [
           Text(
             dateTime(),
@@ -154,78 +144,63 @@ class _ScreenHomeState extends State<ScreenHome> {
                                 (newList.length < 5 ? newList.length : 5),
                             itemBuilder: (context, index) {
                               final value = newList[index];
-                              return Slidable(
-                                key: Key(value.id!),
-                                startActionPane: ActionPane(
-                                    motion: const ScrollMotion(),
-                                    children: [
-                                      SlidableAction(
-                                        backgroundColor:
-                                            Theme.of(context).primaryColor,
-                                        onPressed: (context) {
-                                          deleteDialogFunc(value);
-                                        },
-                                        icon: Icons.delete,
-                                      )
-                                    ]),
-                                child: Card(
-                                  color: Theme.of(context).primaryColor,
-                                  child: ListTile(
-                                    onLongPress: () {
-                                      Navigator.of(context).push(
-                                        MaterialPageRoute(
-                                          builder: (context) => UpdateNotes(
-                                              transactionModel: value,
-                                              index: index),
-                                        ),
-                                      );
-                                    },
-                                    onTap: () {
-                                      detailsPopUp(value);
-                                    },
-                                    visualDensity: VisualDensity.comfortable,
-                                    leading: value.type == CategoryType.income
-                                        ? const CircleAvatar(
-                                            backgroundColor: Colors.black12,
-                                            child: Icon(
-                                              Icons.call_received,
-                                              color: Colors.green,
-                                            ))
-                                        : const CircleAvatar(
-                                            backgroundColor: Colors.black12,
-                                            child: Icon(
-                                              Icons.call_made_outlined,
-                                              color: Colors.red,
-                                            )),
-                                    subtitle: Text(
-                                      parseDate(value.date),
-                                      style:
-                                          const TextStyle(color: Colors.grey),
-                                    ),
-                                    title: Text(
-                                      value.categoryModel.name,
-                                      style: const TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                    trailing: value.type == CategoryType.income
-                                        ? Text(
-                                            '+ ₹ ${value.amount.toString()}',
-                                            style: const TextStyle(
-                                              color: Colors.green,
-                                              fontSize: 18,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          )
-                                        : Text(
-                                            '- ₹ ${value.amount.toString()}',
-                                            style: const TextStyle(
-                                              color: Colors.red,
-                                              fontSize: 18,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
+                              return Card(
+                                color: Theme.of(context).primaryColor,
+                                child: ListTile(
+                                  onLongPress: () {
+                                    Navigator.of(context).push(
+                                      MaterialPageRoute(
+                                        builder: (context) => UpdateNotes(
+                                            transactionModel: value,
+                                            index: index),
+                                      ),
+                                    );
+                                  },
+                                  onTap: () {
+                                    detailsPopUp(value, context);
+                                  },
+                                  visualDensity: VisualDensity.comfortable,
+                                  leading: value.type == CategoryType.income
+                                      ? const CircleAvatar(
+                                          backgroundColor: Colors.black12,
+                                          child: Icon(
+                                            Icons.call_received,
+                                            color: Colors.green,
+                                          ))
+                                      : const CircleAvatar(
+                                          backgroundColor: Colors.black12,
+                                          child: Icon(
+                                            Icons.call_made_outlined,
+                                            color: Colors.red,
+                                          )),
+                                  subtitle: Text(
+                                    parseDate(value.date),
+                                    style:
+                                        const TextStyle(color: Colors.grey),
                                   ),
+                                  title: Text(
+                                    value.categoryModel.name,
+                                    style: const TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                  trailing: value.type == CategoryType.income
+                                      ? Text(
+                                          '+ ₹ ${value.amount.toString()}',
+                                          style: const TextStyle(
+                                            color: Colors.green,
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        )
+                                      : Text(
+                                          '- ₹ ${value.amount.toString()}',
+                                          style: const TextStyle(
+                                            color: Colors.red,
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
                                 ),
                               );
                             },
@@ -265,7 +240,7 @@ class _ScreenHomeState extends State<ScreenHome> {
   /* Home methods starts*/
 
 // pop up the Details
-  detailsPopUp(TransactionModel value) {
+  detailsPopUp(TransactionModel value, BuildContext context) {
     showDialog(
       context: context,
       builder: (context) {
@@ -379,7 +354,7 @@ class _ScreenHomeState extends State<ScreenHome> {
   }
 
 // delete function for delete the list
-  deleteDialogFunc(value) {
+  deleteDialogFunc(value, BuildContext context) {
     showDialog(
       context: context,
       builder: (context) {

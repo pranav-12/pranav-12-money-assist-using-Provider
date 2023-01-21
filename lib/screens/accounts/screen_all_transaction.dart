@@ -2,36 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:money_mangement_project1/db/transactions/transaction_db.dart';
 import 'package:money_mangement_project1/models/categories/category_model.dart';
+import 'package:money_mangement_project1/provider/accounts_provider/accounts_provider.dart';
+import 'package:money_mangement_project1/widgets/bottomnavigationbar.dart';
+import 'package:provider/provider.dart';
 
 import '../../models/transactions/transaction_model.dart';
 import '../add/updatenotes.dart';
 import 'methods_for_accounts_section.dart';
 
-class ScreenAllTransaction extends StatefulWidget {
-  const ScreenAllTransaction({super.key});
-
-  @override
-  State<ScreenAllTransaction> createState() => _ScreenAllTransactionState();
-}
-
 ValueNotifier<List<TransactionModel>> dateRangeList = ValueNotifier([]);
 
-class _ScreenAllTransactionState extends State<ScreenAllTransaction> {
-  List<TransactionModel> newTransactionList =
-      TransactionDB.instance.transactionNotifier.value;
-  List<TransactionModel> foundtransactionNotifier = [];
-
-  int dropdownValue = 1;
-  int dropdownValueforfiltersorting = 0;
-
-  @override
-  void initState() {
-    foundtransactionNotifier = newTransactionList;
-    super.initState();
-  }
-
+class ScreenAllTransaction extends StatelessWidget {
+  const ScreenAllTransaction({super.key});
   @override
   Widget build(BuildContext context) {
+    print('started');
     TransactionDB.instance.refresh();
     return Scaffold(
 //Appbar
@@ -46,52 +31,69 @@ class _ScreenAllTransactionState extends State<ScreenAllTransaction> {
           padding: const EdgeInsets.all(10),
 //dropdownButton for select filter as income and expense or all
           child: DropdownButtonHideUnderline(
-            child: DropdownButton(
-              dropdownColor: Colors.black,
-              value: dropdownValue,
-              borderRadius: BorderRadius.circular(10),
-              iconEnabledColor: Colors.white,
-              style: const TextStyle(),
-              items: [
-                DropdownMenuItem(
-                  value: 1,
-                  child: const Text('All'),
-                  onTap: () {
-                    setState(() {
-                      foundtransactionNotifier =
-                          TransactionDB.instance.transactionNotifier.value;
-                      dropdownValueforfiltersorting = 0;
-                    });
-                  },
-                ),
-                DropdownMenuItem(
-                  value: 2,
-                  child: const Text('Income'),
-                  onTap: () {
-                    setState(() {
-                      foundtransactionNotifier =
-                          TransactionDB.instance.incomeNotifier.value;
-                      dropdownValueforfiltersorting = 0;
-                    });
-                  },
-                ),
-                DropdownMenuItem(
-                  value: 3,
-                  child: const Text('Expense'),
-                  onTap: () {
-                    setState(() {
-                      foundtransactionNotifier =
-                          TransactionDB.instance.expenseNotifier.value;
-                      dropdownValueforfiltersorting = 0;
-                    });
-                  },
-                )
-              ],
-              onChanged: (value) {
-                setState(() {
-                  dropdownValue = value!;
-                });
-              },
+            child: Consumer<ScreenAccountsProvider>(
+              builder: (context, value, child) => DropdownButton(
+                dropdownColor: Colors.black,
+                value: value.dropdownValue,
+                borderRadius: BorderRadius.circular(10),
+                iconEnabledColor: Colors.white,
+                style: const TextStyle(),
+                items: [
+                  DropdownMenuItem(
+                    value: 1,
+                    child: const Text('All'),
+                    onTap: () {
+                      value.changingListIntoFoundTransactionList(
+                          TransactionDB.instance.transactionNotifier.value,
+                          true);
+                      // setState(() {
+                      //   foundtransactionNotifier =
+                      //       TransactionDB.instance.transactionNotifier.value;
+                      value.dropdownValueforfiltersorting = 0;
+                      // });
+                    },
+                  ),
+                  DropdownMenuItem(
+                    value: 2,
+                    child: const Text('Income'),
+                    onTap: () {
+                      value
+                          .changingListIntoFoundTransactionList(
+                              TransactionDB.instance.incomeNotifier.value,
+                              true);
+                      // setState(() {
+                      //   foundtransactionNotifier =
+                      //       TransactionDB.instance.incomeNotifier.value;
+                     value
+                          .dropdownValueforfiltersorting = 0;
+                      // });
+                    },
+                  ),
+                  DropdownMenuItem(
+                    value: 3,
+                    child: const Text('Expense'),
+                    onTap: () {
+                     value
+                          .changingListIntoFoundTransactionList(
+                              TransactionDB.instance.expenseNotifier.value,
+                              true);
+                      // setState(() {
+                      //   foundtransactionNotifier =
+                      //       TransactionDB.instance.expenseNotifier.value;
+                      value
+                          .dropdownValueforfiltersorting = 0;
+                      // });
+                    },
+                  )
+                ],
+                onChanged: (value1) {
+                  // setState(() {
+                  //   dropdownValue = value!;
+                  // });
+                  value
+                      .dropDownValue(value1!, true, false);
+                },
+              ),
             ),
           ),
         ),
@@ -101,65 +103,117 @@ class _ScreenAllTransactionState extends State<ScreenAllTransaction> {
           Padding(
             padding: const EdgeInsets.all(10.0),
             child: DropdownButtonHideUnderline(
-              child: DropdownButton(
-                dropdownColor: Colors.black,
-                value: dropdownValueforfiltersorting,
-                borderRadius: BorderRadius.circular(5),
-                iconEnabledColor: Colors.white,
-                style: const TextStyle(),
-                items: [
-                  DropdownMenuItem(
-                    value: 0,
-                    child: const Text('All'),
-                    onTap: () {
-                      setState(() {
-                        foundtransactionNotifier =
-                            TransactionDB.instance.transactionNotifier.value;
-                      });
-                    },
-                  ),
-                  DropdownMenuItem(
-                    value: 1,
-                    child: const Text('Today'),
-                    onTap: () {
-                      setState(() {
-                        if (dropdownValue == 1) {
-                          foundtransactionNotifier =
-                              TransactionDB.instance.todayAllNotifier.value;
-                        } else if (dropdownValue == 2) {
-                          foundtransactionNotifier =
-                              TransactionDB.instance.todayIncomeNotifier.value;
+              child: Consumer<ScreenAccountsProvider>(
+                builder: (context, value, child) => 
+                 DropdownButton(
+                  dropdownColor: Colors.black,
+                  value: value
+                      .dropdownValueforfiltersorting,
+                  borderRadius: BorderRadius.circular(5),
+                  iconEnabledColor: Colors.white,
+                  style: const TextStyle(),
+                  items: [
+                    DropdownMenuItem(
+                      value: 0,
+                      child: const Text('All'),
+                      onTap: () {
+                        
+                        if (value
+                                .dropdownValue ==
+                            1) {
+                          value
+                              .changingListIntoFoundTransactionList(
+                                  TransactionDB
+                                      .instance.transactionNotifier.value,
+                                  true);
+                        } else if (value
+                                .dropdownValue ==
+                            2) {
+                          value
+                              .changingListIntoFoundTransactionList(
+                                  TransactionDB.instance.incomeNotifier.value,
+                                  true);
                         } else {
-                          foundtransactionNotifier =
-                              TransactionDB.instance.todayExpenseNotifier.value;
+                          value
+                              .changingListIntoFoundTransactionList(
+                                  TransactionDB.instance.expenseNotifier.value,
+                                  true);
                         }
-                      });
-                    },
-                  ),
-                  DropdownMenuItem(
-                    value: 2,
-                    child: const Text('Monthly'),
-                    onTap: () {
-                      setState(() {
-                        if (dropdownValue == 1) {
-                          foundtransactionNotifier =
-                              TransactionDB.instance.monthlyAllNotifier.value;
-                        } else if (dropdownValue == 2) {
-                          foundtransactionNotifier = TransactionDB
-                              .instance.monthlyIncomeNotifier.value;
+                        // setState(() {
+                        //   foundtransactionNotifier =
+                        //       TransactionDB.instance.transactionNotifier.value;
+                        // });
+                      },
+                    ),
+                    DropdownMenuItem(
+                      value: 1,
+                      child: const Text('Today'),
+                      onTap: () {
+                        // setState(() {
+                        if (value
+                                .dropdownValue ==
+                            1) {
+                          value
+                              .changingListIntoFoundTransactionList(
+                                  TransactionDB.instance.todayAllNotifier.value,
+                                  true);
+                        } else if (value
+                                .dropdownValue ==
+                            2) {
+                          value
+                              .changingListIntoFoundTransactionList(
+                                  TransactionDB
+                                      .instance.todayIncomeNotifier.value,
+                                  true);
                         } else {
-                          foundtransactionNotifier = TransactionDB
-                              .instance.monthlyExpenseNotifier.value;
+                         value
+                              .changingListIntoFoundTransactionList(
+                                  TransactionDB
+                                      .instance.todayExpenseNotifier.value,
+                                  true);
                         }
-                      });
-                    },
-                  ),
-                ],
-                onChanged: (value) {
-                  setState(() {
-                    dropdownValueforfiltersorting = value!;
-                  });
-                },
+                        // });
+                      },
+                    ),
+                    DropdownMenuItem(
+                      value: 2,
+                      child: const Text('Monthly'),
+                      onTap: () {
+                        // setState(() {
+                        if (value
+                                .dropdownValue ==
+                            1) {
+                         value
+                              .changingListIntoFoundTransactionList(
+                                  TransactionDB.instance.monthlyAllNotifier.value,
+                                  true);
+                        } else if (value
+                                .dropdownValue ==
+                            2) {
+                          value
+                              .changingListIntoFoundTransactionList(
+                                  TransactionDB
+                                      .instance.monthlyIncomeNotifier.value,
+                                  true);
+                        } else {
+                         value
+                              .changingListIntoFoundTransactionList(
+                                  TransactionDB
+                                      .instance.monthlyExpenseNotifier.value,
+                                  true);
+                        }
+                        // });
+                      },
+                    ),
+                  ],
+                  onChanged: (value1) {
+                    // setState(() {
+                    // dropdownValueforfiltersorting = value!;
+                    // });
+                    value
+                        .dropDownValue(value1!, false, false);
+                  },
+                ),
               ),
             ),
           ),
@@ -267,22 +321,30 @@ class _ScreenAllTransactionState extends State<ScreenAllTransaction> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                TextButton(
-                  onPressed: () async {
-                    dropdownValue = 1;
-                    dropdownValueforfiltersorting = 0;
-                    await parseDateForDateRange();
-                    setState(() {
+                Consumer<ScreenAccountsProvider>(
+                  builder: (context, value, child) => 
+                 TextButton(
+                    onPressed: () async {
+                      value
+                          .dropdownValue = 1;
+                      value
+                          .dropdownValueforfiltersorting = 0;
+                      await parseDateForDateRange();
+                      // setState(() {
                       if (dateRangeList.value.isNotEmpty) {
-                        foundtransactionNotifier = dateRangeList.value;
+                      value
+                            .changingListIntoFoundTransactionList(
+                                dateRangeList.value, true);
                       } else {
-                        return;
+                        value
+                            .changingListIntoFoundTransactionList([], true);
                       }
-                    });
-                  },
-                  child: const Text(
-                    'Custom Date',
-                    style: TextStyle(color: Colors.white, fontSize: 15),
+                      // });
+                    },
+                    child: const Text(
+                      'Custom Date',
+                      style: TextStyle(color: Colors.white, fontSize: 15),
+                    ),
                   ),
                 ),
                 const Icon(Icons.edit),
@@ -294,114 +356,124 @@ class _ScreenAllTransactionState extends State<ScreenAllTransaction> {
           ),
 //for showing the list as listviewBuilder
           Expanded(
-            child: ValueListenableBuilder(
-              valueListenable: TransactionDB.instance.transactionNotifier,
-              builder: (context, List<TransactionModel> newList, Widget? _) {
-                return foundtransactionNotifier.isNotEmpty
-                    ? MediaQuery.removePadding(
-                        context: context,
-                        removeTop: true,
-                        child: ListView.builder(
-                          itemCount: foundtransactionNotifier.length,
-                          itemBuilder: (context, index) {
-                            final value = foundtransactionNotifier[index];
-
-                            return Slidable(
-                              key: Key(value.id!),
-                              startActionPane: ActionPane(
-                                  motion: const ScrollMotion(),
-                                  children: [
-                                    SlidableAction(
-                                      backgroundColor:
-                                          Theme.of(context).primaryColor,
-                                      onPressed: (context) {
-                                        deleteDialogFunc(value);
-                                      },
-                                      icon: Icons.delete,
-                                    )
-                                  ]),
-                              child: Card(
-                                color: Theme.of(context).primaryColor,
-                                child: ListTile(
-                                  onLongPress: () {
-                                    Navigator.of(context).push(
-                                      MaterialPageRoute(
-                                        builder: (context) => UpdateNotes(
-                                            transactionModel: value,
-                                            index: index),
-                                      ),
-                                    );
-                                  },
-                                  onTap: () {
-                                    detailsPopUp(value, context);
-                                  },
-                                  visualDensity: VisualDensity.comfortable,
-                                  leading: value.type == CategoryType.income
-                                      ? const CircleAvatar(
-                                          backgroundColor: Colors.black12,
-                                          child: Icon(
-                                            Icons.call_received,
-                                            color: Colors.green,
-                                          ))
-                                      : const CircleAvatar(
-                                          backgroundColor: Colors.black12,
-                                          child: Icon(
-                                            Icons.call_made_outlined,
-                                            color: Colors.red,
-                                          )),
-                                  subtitle: Text(parseDate(value.date),
-                                      style:
-                                          const TextStyle(color: Colors.grey)),
-                                  title: Text(
-                                    value.categoryModel.name,
-                                    style: const TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold),
-                                  ),
-                                  trailing: value.type == CategoryType.income
-                                      ? Text(
-                                          '+ ₹ ${value.amount.toString()}',
-                                          style: const TextStyle(
-                                            color: Colors.green,
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        )
-                                      : Text(
-                                          '- ₹ ${value.amount.toString()}',
-                                          style: const TextStyle(
-                                            color: Colors.red,
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.bold,
-                                          ),
+            child: Consumer<ScreenAccountsProvider>(
+              builder: (context, value, child) => 
+               ValueListenableBuilder(
+                valueListenable: TransactionDB.instance.transactionNotifier,
+                builder: (context, List<TransactionModel> newList, Widget? _) {
+                  return value
+                          .foundtransactionNotifier
+                          .isNotEmpty
+                      ? MediaQuery.removePadding(
+                          context: context,
+                          removeTop: true,
+                          child: ListView.builder(
+                            itemCount:
+                                value
+                                    .foundtransactionNotifier
+                                    .length,
+                            itemBuilder: (context, index) {
+                              final value1 =
+                                 value
+                                      .foundtransactionNotifier[index];
+            
+                              return Slidable(
+                                key: Key(value1.id!),
+                                startActionPane: ActionPane(
+                                    motion: const ScrollMotion(),
+                                    children: [
+                                      SlidableAction(
+                                        backgroundColor:
+                                            Theme.of(context).primaryColor,
+                                        onPressed: (context) {
+                                          deleteDialogFunc(value1);
+                                        },
+                                        icon: Icons.delete,
+                                      )
+                                    ]),
+                                child: Card(
+                                  color: Theme.of(context).primaryColor,
+                                  child: ListTile(
+                                    onLongPress: () {
+                                      Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (context) => UpdateNotes(
+                                              transactionModel: value1,
+                                              index: index),
                                         ),
+                                      );
+                                    },
+                                    onTap: () {
+                                      detailsPopUp(value1, context);
+                                    },
+                                    visualDensity: VisualDensity.comfortable,
+                                    leading: value1.type == CategoryType.income
+                                        ? const CircleAvatar(
+                                            backgroundColor: Colors.black12,
+                                            child: Icon(
+                                              Icons.call_received,
+                                              color: Colors.green,
+                                            ))
+                                        : const CircleAvatar(
+                                            backgroundColor: Colors.black12,
+                                            child: Icon(
+                                              Icons.call_made_outlined,
+                                              color: Colors.red,
+                                            )),
+                                    subtitle: Text(parseDate(value1.date),
+                                        style:
+                                            const TextStyle(color: Colors.grey)),
+                                    title: Text(
+                                      value1.categoryModel.name,
+                                      style: const TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                    trailing: value1.type == CategoryType.income
+                                        ? Text(
+                                            '+ ₹ ${value1.amount.toString()}',
+                                            style: const TextStyle(
+                                              color: Colors.green,
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          )
+                                        : Text(
+                                            '- ₹ ${value1.amount.toString()}',
+                                            style: const TextStyle(
+                                              color: Colors.red,
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                  ),
                                 ),
+                              );
+                            },
+                          ),
+                        )
+            //for : if all datas list is empty show the no datas message
+                      : Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: const [
+                              Icon(
+                                Icons.add_to_photos,
+                                size: 50,
+                                color: Colors.black12,
                               ),
-                            );
-                          },
-                        ),
-                      )
-//for : if all datas list is empty show the no datas message
-                    : Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: const [
-                            Icon(
-                              Icons.add_to_photos,
-                              size: 50,
-                              color: Colors.black12,
-                            ),
-                            Text(
-                              'No Transaction available!',
-                              style: TextStyle(
-                                fontSize: 20,
-                                color: Colors.black26,
-                              ),
-                            )
-                          ],
-                        ),
-                      );
-              },
+                              Text(
+                                'No Transaction available!',
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  color: Colors.black26,
+                                ),
+                              )
+                            ],
+                          ),
+                        );
+                },
+              ),
             ),
           ),
         ],

@@ -148,9 +148,10 @@ String parseDate(DateTime dates) {
 Future<void> parseDateForDateRange() async {
   dateRangeList.value.clear();
   var daterange = DateTimeRange(
-    start: DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day - 6),
-    end: DateTime(
-        DateTime.now().year, DateTime.now().month, DateTime.now().day ),
+    start: DateTime(
+        DateTime.now().year, DateTime.now().month, DateTime.now().day - 6),
+    end:
+        DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day),
   );
   DateTimeRange? picked = await showDateRangePicker(
       context: navigatorKey.currentContext!,
@@ -159,7 +160,7 @@ Future<void> parseDateForDateRange() async {
       initialDateRange: daterange);
   if (picked != null) {
     final allTrans = await TransactionDB.instance.getTransaction();
-    
+
     await Future.forEach(allTrans, (TransactionModel transaction) {
       if (transaction.date.isAfter(
             picked.start.subtract(

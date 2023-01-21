@@ -1,62 +1,57 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+
 import 'package:money_mangement_project1/db/transactions/transaction_db.dart';
 import 'package:money_mangement_project1/models/categories/category_model.dart';
 import 'package:money_mangement_project1/models/transactions/transaction_model.dart';
+import 'package:money_mangement_project1/provider/add_notes_provider.dart';
+
 import 'package:money_mangement_project1/screens/settings/add_category_popup.dart';
 import 'package:money_mangement_project1/widgets/bottomnavigationbar.dart';
+import 'package:provider/provider.dart';
 import 'package:toggle_switch/toggle_switch.dart';
 
 import '../../db/categories/category_db.dart';
 
-class AddNotes extends StatefulWidget {
+// ignore: must_be_immutable
+class AddNotes extends StatelessWidget {
+  AddNotes({super.key});
   static const routeName = 'add-notes';
-  const AddNotes({super.key});
 
-  @override
-  State<AddNotes> createState() => _AddNotesState();
-}
-
-class _AddNotesState extends State<AddNotes> {
-  TextEditingController textEditingController = TextEditingController();
+  final TextEditingController textEditingController = TextEditingController();
 
   final _formKey = GlobalKey<FormState>();
-  String? _categoryId;
+
   List<bool> togglebutton = List.generate(2, (index) => false);
-  TextEditingController dateController = TextEditingController();
+
   final _notesTextEditingController = TextEditingController();
   final _amountTextEditingController = TextEditingController();
-  CategoryType? selectedCategoryType;
   DateTime? pickedDate;
   CategoryModel? selectedCategoryModel;
-  bool _swapNutrients = true;
-
-  @override
-  void initState() {
-    selectedCategoryType = CategoryType.income;
-
-    super.initState();
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       extendBody: true,
 //appbar
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).primaryColor,
-        title: selectedCategoryType == CategoryType.income
-            ? const Text(
-                'Add Income',
-                style:
-                    TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
-              )
-            : const Text(
-                'Add Expense',
-                style:
-                    TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
-              ),
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(50),
+        child: Consumer<AddNotesProvider>(
+          builder: (context, value, child) => AppBar(
+            backgroundColor: Theme.of(context).primaryColor,
+            title: value.selectedCategoryType == CategoryType.income
+                ? const Text(
+                    'Add Income',
+                    style: TextStyle(
+                        color: Colors.black, fontWeight: FontWeight.bold),
+                  )
+                : const Text(
+                    'Add Expense',
+                    style: TextStyle(
+                        color: Colors.black, fontWeight: FontWeight.bold),
+                  ),
+          ),
+        ),
       ),
 //Listview
       body: ListView(children: [
@@ -67,38 +62,34 @@ class _AddNotesState extends State<AddNotes> {
               child: Padding(
                 padding: const EdgeInsets.all(10),
 //ToggleSwitch for select the Category
-                child: ToggleSwitch(
-                  activeBorders: [Border.all(width: 2, color: Colors.black)],
-                  initialLabelIndex: _swapNutrients ? 0 : 1,
-                  totalSwitches: 2,
-                  onToggle: (index) {
-                    setState(() {
-                      if (_swapNutrients == false) {
-                        selectedCategoryType = CategoryType.income;
-                        _swapNutrients = !_swapNutrients;
-                        _categoryId = null;
+                child: Consumer<AddNotesProvider>(
+                  builder: (context, value, child) => ToggleSwitch(
+                    activeBorders: [Border.all(width: 2, color: Colors.black)],
+                    initialLabelIndex: value.swapNutrients ? 0 : 1,
+                    totalSwitches: 2,
+                    onToggle: (index) {
+                      if (value.swapNutrients == false) {
+                        value.onToggle(CategoryType.income);
                       } else {
-                        selectedCategoryType = CategoryType.expense;
-                        _swapNutrients = !_swapNutrients;
-                        _categoryId = null;
+                        value.onToggle(CategoryType.expense);
                       }
-                    });
-                  },
-                  activeBgColor: [Theme.of(context).primaryColor],
-                  icons: const [
-                    Icons.call_received,
-                    Icons.call_made_rounded,
-                  ],
-                  iconSize: 25,
-                  cornerRadius: 20,
-                  activeFgColor: Colors.white,
-                  inactiveFgColor: Colors.black,
-                  animate: true,
-                  inactiveBgColor: Colors.blueGrey,
-                  labels: const ['Income', 'Expense'],
-                  fontSize: 16,
-                  minHeight: 40,
-                  minWidth: 130,
+                    },
+                    activeBgColor: [Theme.of(context).primaryColor],
+                    icons: const [
+                      Icons.call_received,
+                      Icons.call_made_rounded,
+                    ],
+                    iconSize: 25,
+                    cornerRadius: 20,
+                    activeFgColor: Colors.white,
+                    inactiveFgColor: Colors.black,
+                    animate: true,
+                    inactiveBgColor: Colors.blueGrey,
+                    labels: const ['Income', 'Expense'],
+                    fontSize: 16,
+                    minHeight: 40,
+                    minWidth: 130,
+                  ),
                 ),
               ),
             ),
@@ -127,34 +118,36 @@ class _AddNotesState extends State<AddNotes> {
                       child: Column(
                         children: [
 //for select the  Date
-                          TextFormField(
-                            autovalidateMode:
-                                AutovalidateMode.onUserInteraction,
-                            validator: (value) {
-                              if (value!.isEmpty) {
-                                return 'select date';
-                              }
-                              return null;
-                            },
-                            readOnly: true,
-                            controller: dateController,
-                            keyboardType: TextInputType.none,
-                            onTap: _showDatePicker,
-                            decoration: const InputDecoration(
-                              iconColor: Colors.white,
-                              focusColor: Colors.white,
-                              fillColor: Colors.white,
-                              border: OutlineInputBorder(),
-                              prefixIcon: Icon(Icons.calendar_month_outlined),
-                              enabledBorder: OutlineInputBorder(),
-                              labelText: 'Date',
-                              hintText: 'Select Date',
-                              labelStyle: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 23),
-                              floatingLabelBehavior:
-                                  FloatingLabelBehavior.always,
+                          Consumer<AddNotesProvider>(
+                            builder: (context, value, child) => TextFormField(
+                              autovalidateMode:
+                                  AutovalidateMode.onUserInteraction,
+                              validator: (value) {
+                                if (value!.isEmpty) {
+                                  return 'select date';
+                                }
+                                return null;
+                              },
+                              readOnly: true,
+                              controller: value.dateController,
+                              keyboardType: TextInputType.none,
+                              onTap: _showDatePicker,
+                              decoration: const InputDecoration(
+                                iconColor: Colors.white,
+                                focusColor: Colors.white,
+                                fillColor: Colors.white,
+                                border: OutlineInputBorder(),
+                                prefixIcon: Icon(Icons.calendar_month_outlined),
+                                enabledBorder: OutlineInputBorder(),
+                                labelText: 'Date',
+                                hintText: 'Select Date',
+                                labelStyle: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 23),
+                                floatingLabelBehavior:
+                                    FloatingLabelBehavior.always,
+                              ),
                             ),
                           ),
                           const SizedBox(
@@ -181,63 +174,65 @@ class _AddNotesState extends State<AddNotes> {
                                     ),
 //dropdownButton for categoryType
                                     DropdownButtonHideUnderline(
-                                      child: DropdownButton(
-                                        borderRadius: BorderRadius.circular(15),
-                                        value: _categoryId,
-                                        iconSize: 35,
-                                        iconEnabledColor: Colors.black,
-                                        style: const TextStyle(
-                                            color: Colors.black,
-                                            fontWeight: FontWeight.bold),
-                                        dropdownColor: const Color.fromARGB(
-                                            255, 130, 192, 204),
-                                        hint: const Text(
-                                          '<Select>',
-                                          style: TextStyle(
+                                      child: Consumer<AddNotesProvider>(
+                                        builder: (context, value, child) =>
+                                            DropdownButton(
+                                          borderRadius:
+                                              BorderRadius.circular(15),
+                                          value: value.categoryId,
+                                          iconSize: 35,
+                                          iconEnabledColor: Colors.black,
+                                          style: const TextStyle(
                                               color: Colors.black,
                                               fontWeight: FontWeight.bold),
+                                          dropdownColor: const Color.fromARGB(
+                                              255, 130, 192, 204),
+                                          hint: const Text(
+                                            '<Select>',
+                                            style: TextStyle(
+                                                color: Colors.black,
+                                                fontWeight: FontWeight.bold),
+                                          ),
+                                          items: (value.selectedCategoryType ==
+                                                      CategoryType.income
+                                                  ? CategoryDB()
+                                                      .incomeCategoryListNotifier
+                                                  : CategoryDB()
+                                                      .expenseCategoryListNotifier)
+                                              .value
+                                              .map(
+                                                (e) => DropdownMenuItem(
+                                                  onTap: () {
+                                                    selectedCategoryModel = e;
+                                                  },
+                                                  value: e.id,
+                                                  child: Text(e.name),
+                                                ),
+                                              )
+                                              .toList(),
+                                          onChanged: (value1) {
+                                            value.changeValue(value1!);
+                                          },
                                         ),
-                                        items: (selectedCategoryType ==
-                                                    CategoryType.income
-                                                ? CategoryDB()
-                                                    .incomeCategoryListNotifier
-                                                : CategoryDB()
-                                                    .expenseCategoryListNotifier)
-                                            .value
-                                            .map(
-                                              (e) => DropdownMenuItem(
-                                                onTap: () {
-                                                  selectedCategoryModel = e;
-                                                },
-                                                value: e.id,
-                                                child: Text(e.name),
-                                              ),
-                                            )
-                                            .toList(),
-                                        onChanged: (value) {
-                                          setState(
-                                            () {
-                                              _categoryId = value;
-                                            },
-                                          );
-                                        },
                                       ),
                                     )
                                   ],
                                 ),
                               ),
 //IconButton for add Categories
-                              IconButton(
-                                iconSize: 35,
-                                color:
-                                    selectedCategoryType == CategoryType.income
-                                        ? Colors.white
-                                        : Colors.black,
-                                onPressed: () {
-                                  showCategoryAddPop(context);
-                                },
-                                icon:
-                                    const Icon(Icons.add_circle_outline_sharp),
+                              Consumer<AddNotesProvider>(
+                                builder: (context, value, child) => IconButton(
+                                  iconSize: 35,
+                                  color: value.selectedCategoryType ==
+                                          CategoryType.income
+                                      ? Colors.white
+                                      : Colors.black,
+                                  onPressed: () {
+                                    showCategoryAddPop(context);
+                                  },
+                                  icon: const Icon(
+                                      Icons.add_circle_outline_sharp),
+                                ),
                               )
                             ],
                           ),
@@ -310,7 +305,7 @@ class _AddNotesState extends State<AddNotes> {
                                   elevation: 15,
                                   backgroundColor: Colors.blueGrey),
                               onPressed: () {
-                                addTransaction();
+                                addTransaction(context);
                               },
                               child: const Text('Save'))
                         ],
@@ -331,23 +326,29 @@ class _AddNotesState extends State<AddNotes> {
 //for pick the date into Datecalender widget
   _showDatePicker() async {
     pickedDate = await showDatePicker(
-        context: context,
+        context: navigatorKey.currentContext!,
         initialDate: DateTime.now(),
         firstDate: DateTime(2020),
         lastDate: DateTime.now());
     if (pickedDate != null) {
-      setState(() {
-        dateController.text = DateFormat('dd-MM-yyyy').format(pickedDate!);
-      });
+      Provider.of<AddNotesProvider>(navigatorKey.currentContext!, listen: false)
+          .dateControllerFunc(DateFormat('dd-MM-yyyy').format(pickedDate!));
     }
   }
 
 //this function for checking validator and if its true add the datas into database
-  Future<void> addTransaction() async {
+  Future<void> addTransaction(BuildContext context) async {
     if (_amountTextEditingController.text.isEmpty &&
         _notesTextEditingController.text.isEmpty &&
-        dateController.text.isEmpty &&
-        _categoryId == null) {
+        Provider.of<AddNotesProvider>(navigatorKey.currentContext!,
+                listen: false)
+            .dateController
+            .text
+            .isEmpty &&
+        Provider.of<AddNotesProvider>(navigatorKey.currentContext!,
+                    listen: false)
+                .categoryId ==
+            null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           behavior: SnackBarBehavior.floating,
@@ -362,7 +363,9 @@ class _AddNotesState extends State<AddNotes> {
         ),
       );
     } else {
-      if (_formKey.currentState!.validate() && _categoryId != null) {
+      if (_formKey.currentState!.validate() &&
+          Provider.of<AddNotesProvider>(context, listen: false).categoryId !=
+              null) {
         final parsedAmount = double.tryParse(_amountTextEditingController.text);
         final model = TransactionModel(
             id: DateTime.now().second.toString(),
@@ -370,12 +373,23 @@ class _AddNotesState extends State<AddNotes> {
             amount: parsedAmount!,
             categoryModel: selectedCategoryModel!,
             date: pickedDate!,
-            type: selectedCategoryType!);
+            type: Provider.of<AddNotesProvider>(context, listen: false)
+                .selectedCategoryType);
         await TransactionDB.instance.addTransaction(model);
         TransactionDB.instance.refresh();
+        Provider.of<AddNotesProvider>(navigatorKey.currentContext!,
+                listen: false)
+            .dateController
+            .clear();
+        Provider.of<AddNotesProvider>(navigatorKey.currentContext!,
+                listen: false)
+            .categoryId = null;
+        Provider.of<AddNotesProvider>(navigatorKey.currentContext!,
+                listen: false)
+            .swapNutrients = true;
         Navigator.of(navigatorKey.currentContext!).pushReplacement(
           MaterialPageRoute(
-            builder: (context) => const AppBottomNavigationBar(),
+            builder: (context) => AppBottomNavigationBar(),
           ),
         );
 
@@ -398,7 +412,6 @@ class _AddNotesState extends State<AddNotes> {
       }
     }
   }
-
 
 // for pop up the adding the category
   Future<void> showCategoryAddPop(context) async {
@@ -448,21 +461,12 @@ class _AddNotesState extends State<AddNotes> {
                 style: ElevatedButton.styleFrom(
                     backgroundColor: Theme.of(context).primaryColor),
                 onPressed: () {
-                 setState(() {
-                    if (formKey.currentState!.validate()) {
-                    final name = textEditingController.text;
-
-                    final type = selectedCategoryNotifier.value;
-                    final category = CategoryModel(
-                        id: DateTime.now().microsecondsSinceEpoch.toString(),
-                        name: name,
-                        type: type);
-                    CategoryDB.instance.insertCategory(category);
+                  if (formKey.currentState!.validate()) {
+                    Provider.of<AddNotesProvider>(context, listen: false)
+                        .addCategoryList(textEditingController);
                     textEditingController.clear();
-                    CategoryDB.instance.refreshUI();
                     Navigator.of(ctx).pop();
                   }
-                 });
                 },
                 child: const Text('Add'),
               ),
