@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:intl/intl.dart';
 import 'package:money_mangement_project1/db/categories/category_db.dart';
 import 'package:money_mangement_project1/screens/add/updatenotes.dart';
+
 import '../../db/transactions/transaction_db.dart';
 import '../../models/categories/category_model.dart';
 import '../../models/transactions/transaction_model.dart';
@@ -79,9 +79,10 @@ class ScreenHome extends StatelessWidget {
                             decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(10),
                                 border: Border.all(
-                                    width: 3,
-                                    color: Colors.white,
-                                    strokeAlign: StrokeAlign.center),
+                                  width: 3,
+                                  color: Colors.white,
+                                  strokeAlign: BorderSide.strokeAlignCenter,
+                                ),
                                 color: Theme.of(context).primaryColor),
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
@@ -175,8 +176,7 @@ class ScreenHome extends StatelessWidget {
                                           )),
                                   subtitle: Text(
                                     parseDate(value.date),
-                                    style:
-                                        const TextStyle(color: Colors.grey),
+                                    style: const TextStyle(color: Colors.grey),
                                   ),
                                   title: Text(
                                     value.categoryModel.name,

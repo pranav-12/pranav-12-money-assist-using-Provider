@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
-
 import 'package:money_mangement_project1/db/transactions/transaction_db.dart';
 import 'package:money_mangement_project1/models/categories/category_model.dart';
 import 'package:money_mangement_project1/models/transactions/transaction_model.dart';
 import 'package:money_mangement_project1/provider/add_notes_provider.dart';
-
 import 'package:money_mangement_project1/screens/settings/add_category_popup.dart';
 import 'package:money_mangement_project1/widgets/bottomnavigationbar.dart';
 import 'package:provider/provider.dart';
@@ -17,18 +15,20 @@ import '../../db/categories/category_db.dart';
 // ignore: must_be_immutable
 class AddNotes extends StatelessWidget {
   AddNotes({super.key});
+
   static const routeName = 'add-notes';
 
   final TextEditingController textEditingController = TextEditingController();
 
   final _formKey = GlobalKey<FormState>();
 
-  List<bool> togglebutton = List.generate(2, (index) => false);
+  List<bool> toggleButton = List.generate(2, (index) => false);
 
   final _notesTextEditingController = TextEditingController();
   final _amountTextEditingController = TextEditingController();
   DateTime? pickedDate;
   CategoryModel? selectedCategoryModel;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -107,9 +107,10 @@ class AddNotes extends StatelessWidget {
                       color: Theme.of(context).primaryColor,
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                          color: Colors.black,
-                          width: 2,
-                          strokeAlign: StrokeAlign.center),
+                        color: Colors.black,
+                        width: 2,
+                        strokeAlign: BorderSide.strokeAlignCenter,
+                      ),
                     ),
 //put the dates and category dropdown and textformfield
                     child: Padding(
